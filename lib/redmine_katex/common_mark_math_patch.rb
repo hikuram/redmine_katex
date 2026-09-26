@@ -53,7 +53,14 @@ module RedmineKatex
       private
 
       def extensions
-        super.merge(math_dollars: true)
+        exts = super
+        if exts.is_a?(Array)
+          exts.include?(:math_dollars) ? exts : exts + [:math_dollars]
+        elsif exts.is_a?(Hash)
+          exts.merge(math_dollars: true)
+        else
+          exts
+        end
       end
     end
   end
