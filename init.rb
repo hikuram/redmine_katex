@@ -6,8 +6,8 @@ require_relative 'lib/redmine_katex/hooks'
 Redmine::Plugin.register :redmine_katex do
   name 'Redmine KaTeX'
   author 'Redmine Community'
-  description 'Local KaTeX rendering with an isolated CommonMark + KaTeX formatter for Redmine 7.'
-  version '1.1.1'
+  description 'Self-contained KaTeX rendering with an isolated CommonMark formatter for Redmine 7.'
+  version '1.0.0'
   url 'https://katex.org/'
   requires_redmine version_or_higher: '7.0.0'
 end

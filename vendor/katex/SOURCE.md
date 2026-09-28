@@ -2,8 +2,8 @@
 
 Bundled KaTeX version: **0.18.9**
 
-Source for this package: user-supplied `katex.zip` used for this rebuild.
-The supplied distribution identifies itself as KaTeX 0.18.9.
+Source for this package: user-supplied upstream KaTeX distribution archive `katex.zip`.
+The supplied distribution identifies itself as KaTeX 0.18.9 and is vendored here as the runtime subset documented below.
 
 SHA-256:
 
