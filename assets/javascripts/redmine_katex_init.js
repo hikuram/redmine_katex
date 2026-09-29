@@ -16,7 +16,6 @@
     window.renderMathInElement(root, Object.assign({}, katexOptions, {
       delimiters: [
         {left: "$$", right: "$$", display: true},
-        {left: "$", right: "$", display: false},
         {left: "\\[", right: "\\]", display: true},
         {left: "\\(", right: "\\)", display: false}
       ],
@@ -43,20 +42,25 @@
     });
   }
 
-  function renderRedmineKatex() {
-    if (!document.body || !window.katex) return;
-
-    // Activity and other non-CommonMark views may still contain raw delimiters.
-    renderRawDelimitedMath(document.body);
-
-    // The isolated CommonMark formatter emits semantic math spans. Render these
-    // directly instead of converting them back to dollar delimiters.
-    renderSemanticMath(document);
+  function renderRedmineKatex(root) {
+    if (!root || !window.katex) return;
+    renderRawDelimitedMath(root);
+    renderSemanticMath(root);
   }
 
-  document.addEventListener("DOMContentLoaded", renderRedmineKatex);
+  document.addEventListener("DOMContentLoaded", function() {
+    renderRedmineKatex(document.body);
 
-  if (window.jQuery) {
-    window.jQuery(document).ajaxComplete(renderRedmineKatex);
-  }
+    // MutationObserver
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        mutation.addedNodes.forEach(function(node) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            renderRedmineKatex(node);
+          }
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
 })();

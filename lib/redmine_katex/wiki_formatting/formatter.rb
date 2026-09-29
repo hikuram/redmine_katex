@@ -18,14 +18,19 @@ module RedmineKatex
         commonmarker_extensions: KATEX_EXTENSIONS
       ).freeze
 
-      SANITIZER = begin
-        sanitizer = Redmine::WikiFormatting::CommonMark::SanitizationFilter.new
-        attrs = sanitizer.allowlist.fetch(:attributes)
-        span_attrs = Array(attrs['span']).dup
-        span_attrs << 'data-math-style' unless span_attrs.include?('data-math-style')
-        attrs['span'] = span_attrs.freeze
-        sanitizer
+      class KatexSanitizationFilter < Redmine::WikiFormatting::CommonMark::SanitizationFilter
+        def allowlist
+          @katex_allowlist ||= begin
+            list = super.deep_dup
+            list[:attributes] ||= {}
+            list[:attributes]['span'] = Array(list[:attributes]['span'])
+            list[:attributes]['span'] << 'data-math-style' unless list[:attributes]['span'].include?('data-math-style')
+            list.freeze
+          end
+        end
       end
+
+      SANITIZER = KatexSanitizationFilter.new
 
       def to_html(*_args)
         html = Redmine::WikiFormatting::CommonMark::MarkdownFilter.new(@text, PIPELINE_CONFIG).call
