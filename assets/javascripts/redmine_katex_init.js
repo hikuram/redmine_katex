@@ -10,57 +10,69 @@
     maxSize: 50
   };
 
+  const displayMathSelector = 'span[data-math-style="display"]:not(.redmine-katex-rendered)';
+
   function renderRawDelimitedMath(root) {
     if (typeof window.renderMathInElement !== "function") return;
 
     window.renderMathInElement(root, Object.assign({}, katexOptions, {
       delimiters: [
-        {left: "$$", right: "$$", display: true},
-        {left: "\\[", right: "\\]", display: true},
-        {left: "\\(", right: "\\)", display: false}
+        {left: "$$", right: "$$", display: true}
       ],
       ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"],
       ignoredClasses: ["katex", "katex-display", "redmine-katex-rendered"]
     }));
   }
 
+  function renderSemanticElement(element) {
+    const source = element.textContent || "";
+
+    try {
+      window.katex.render(source, element, Object.assign({}, katexOptions, {
+        displayMode: true
+      }));
+      element.classList.add("redmine-katex-rendered");
+    } catch (error) {
+      console.warn("[redmine_katex] KaTeX render failed", error);
+    }
+  }
+
   function renderSemanticMath(root) {
     if (!window.katex || typeof window.katex.render !== "function") return;
 
-    root.querySelectorAll('span[data-math-style]:not(.redmine-katex-rendered)').forEach(function (element) {
-      const source = element.textContent || "";
-      const displayMode = element.getAttribute("data-math-style") === "display";
+    if (root.nodeType === Node.ELEMENT_NODE && root.matches(displayMathSelector)) {
+      renderSemanticElement(root);
+    }
 
-      try {
-        window.katex.render(source, element, Object.assign({}, katexOptions, {
-          displayMode: displayMode
-        }));
-        element.classList.add("redmine-katex-rendered");
-      } catch (error) {
-        console.warn("[redmine_katex] KaTeX render failed", error);
-      }
-    });
+    if (typeof root.querySelectorAll === "function") {
+      root.querySelectorAll(displayMathSelector).forEach(renderSemanticElement);
+    }
   }
 
   function renderRedmineKatex(root) {
     if (!root || !window.katex) return;
+
+    // Activity and other views that bypass CommonMark may contain raw $$...$$.
     renderRawDelimitedMath(root);
+
+    // The isolated formatter emits semantic display-math spans. Preview HTML
+    // added after page load is handled by the same function via MutationObserver.
     renderSemanticMath(root);
   }
 
-  document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("DOMContentLoaded", function () {
     renderRedmineKatex(document.body);
 
-    // MutationObserver
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        mutation.addedNodes.forEach(function(node) {
+    const observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        mutation.addedNodes.forEach(function (node) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             renderRedmineKatex(node);
           }
         });
       });
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+
+    observer.observe(document.body, {childList: true, subtree: true});
   });
 })();

@@ -2,14 +2,17 @@
 
 module RedmineKatex
   module WikiFormatting
-    # An isolated CommonMark formatter that differs from Redmine's built-in
-    # formatter only by enabling CommonMarker's math_dollars extension and by
-    # preserving the resulting data-math-style attribute.
+    # An isolated CommonMark formatter for display math.
+    #
+    # CommonMarker's math_dollars extension is enabled so that $$...$$ is
+    # protected before ordinary Markdown escaping can alter TeX commands such
+    # as \,. The same extension also recognizes $...$ as inline math, but this
+    # plugin intentionally does not support inline dollar math: inline math
+    # nodes are converted back to literal $...$ text before sanitization.
     #
     # The built-in `common_mark` formatter and its constants are never modified.
     class Formatter < Redmine::WikiFormatting::CommonMark::Formatter
       BASE_CONFIG = Redmine::WikiFormatting::CommonMark::PIPELINE_CONFIG
-
       KATEX_EXTENSIONS = BASE_CONFIG.fetch(:commonmarker_extensions).merge(
         math_dollars: true
       ).freeze
@@ -35,8 +38,14 @@ module RedmineKatex
       def to_html(*_args)
         html = Redmine::WikiFormatting::CommonMark::MarkdownFilter.new(@text, PIPELINE_CONFIG).call
         fragment = Redmine::WikiFormatting::HtmlParser.parse(html)
-        SANITIZER.call(fragment)
 
+        # `math_dollars` recognizes both $...$ and $$...$$. v1.0.1 deliberately
+        # supports display math only, so restore inline math to literal text.
+        fragment.css('span[data-math-style="inline"]').each do |node|
+          node.replace(Nokogiri::XML::Text.new("$#{node.text}$", fragment.document))
+        end
+
+        SANITIZER.call(fragment)
         scrubbers = Redmine::WikiFormatting::CommonMark::SCRUBBERS + post_processor_scrubbers
         scrubber = Loofah::Scrubber.new do |node|
           scrubbers.each do |candidate|
