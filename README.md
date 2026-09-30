@@ -8,6 +8,7 @@ Self-contained KaTeX display-math rendering for Redmine 7.0+ using an isolated C
 
 - Display math with `$$...$$`
 - KaTeX rendering for issue descriptions, wiki pages, previews, and other formatted text
+- Explicit exclusion of Monaco Editor editing surfaces while keeping Monaco preview panes renderable
 - Auto-render support for views that bypass the CommonMark formatter, such as Activity
 - `mhchem` support for chemistry notation such as `\ce{...}` and `\pu{...}`
 - Local KaTeX assets; no external CDN dependency
@@ -98,6 +99,12 @@ This avoids accidental rendering of ordinary text such as currency ranges while 
 Redmine previews are inserted into the page dynamically. The plugin observes newly added DOM content and renders KaTeX in the inserted preview without modifying Redmine's preview controller or preview partials.
 
 Only `$$...$$` display math is rendered in previews, matching saved issue and wiki content.
+
+### Monaco Editor compatibility
+
+When the `redmine_monaco_editor` plugin is installed, KaTeX deliberately ignores Monaco's editing DOM (`.monaco-editor-container` / `.monaco-editor`). This prevents live editor text from being replaced by rendered math.
+
+The Monaco preview pane is not excluded, so dynamically inserted preview HTML continues to receive KaTeX rendering through the same `MutationObserver`. The observer also skips editor-internal DOM mutations before invoking the KaTeX render pass, avoiding unnecessary work while typing.
 
 ## Safe removal
 
@@ -255,6 +262,8 @@ vendor/katex/VERSION
 - Kept CommonMarker `math_dollars` enabled so display TeX is protected from Markdown escaping.
 - Restored CommonMarker inline math nodes to literal `$...$` text before sanitization.
 - Limited browser-side semantic rendering to display math nodes.
+- Excluded Monaco Editor editing surfaces from KaTeX rendering while preserving Monaco preview rendering.
+- Added an early MutationObserver guard for Monaco editor-internal DOM updates.
 
 ### v1.0.0
 
