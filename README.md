@@ -247,10 +247,49 @@ vendor/katex/VERSION
 
 - The public math syntax is intentionally limited to `$$...$$` display math.
 - `$...$`, `\(...\)`, and `\[...\]` are not rendered by the plugin.
+- Some Markdown block syntax inside `$$...$$` may be interpreted by CommonMark before the math extension processes it. See below.
 - KaTeX supports a large subset of TeX/LaTeX math syntax, not every MathJax or full LaTeX command.
 - The bundled fonts are WOFF2-only. This targets current Chrome, Edge, Firefox, and Safari rather than legacy browsers.
 - JavaScript must be enabled for math rendering.
 - The plugin intentionally avoids monkey-patching Redmine's standard `common_mark` formatter, global sanitizer, `ApplicationHelper`, or preview implementation.
+
+### CommonMark block syntax inside display math
+
+Redmine/CommonMark parses block-level Markdown before the `math_dollars` extension processes display math. As a result, a line inside `$$...$$` that also forms valid Markdown block syntax may be interpreted as Markdown before it reaches KaTeX.
+
+For example, avoid placing `=` alone on a line:
+
+```markdown
+$$
+\sigma
+=
+\sigma_0
+$$
+```
+
+A line containing only `=` can be interpreted as a Setext heading underline, splitting the intended math block.
+
+Write the operator together with either side instead:
+
+```markdown
+$$
+\sigma =
+\sigma_0
+$$
+```
+
+or:
+
+```markdown
+$$
+\sigma
+= \sigma_0
+$$
+```
+
+The same general caution applies to other lines that can form block-level Markdown syntax, such as headings, block quotes, lists, or horizontal rules.
+
+This limitation is caused by the interaction between CommonMark block parsing and `math_dollars`, not by KaTeX itself.
 
 ## Release history
 
