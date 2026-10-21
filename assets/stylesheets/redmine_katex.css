@@ -1,0 +1,10 @@
+/*
+ * KaTeX/mhchem uses transparent phantom glyphs (for example \vphantom{X})
+ * for layout.  They should not participate in browser text selection.
+ * copy-tex handles clipboard serialization separately and preserves TeX source.
+ */
+.katex .katex-html [style*="color:transparent"],
+.katex .katex-html [style*="color: transparent"] {
+  -webkit-user-select: none;
+  user-select: none;
+}

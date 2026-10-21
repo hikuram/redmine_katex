@@ -13,6 +13,7 @@ This plugin redistributes a browser-runtime subset of KaTeX v0.18.9:
 - `katex.min.css`
 - `contrib/auto-render.min.js`
 - `contrib/mhchem.min.js`
+- `contrib/copy-tex.min.js`
 - all KaTeX font families in WOFF2 format
 
 The full KaTeX MIT License is included at:
@@ -28,8 +29,11 @@ vendor/katex/SOURCE.md
 vendor/katex/VERSION
 ```
 
-For package-size reduction, the bundled CSS has been modified only to remove
+For package-size reduction, the bundled KaTeX CSS has been modified only to remove
 WOFF and TTF fallback font URLs from `@font-face` rules. The corresponding WOFF
 and TTF files, non-minified/ESM builds, and unused distribution artifacts are
 not redistributed. No KaTeX JavaScript source behavior is modified by this
 packaging step.
+
+The plugin also ships its own `assets/stylesheets/redmine_katex.css` integration
+stylesheet. It is not part of KaTeX and is loaded after the vendor stylesheet.

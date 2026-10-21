@@ -23,6 +23,7 @@ tar xzf "$tmp_dir/katex.tar.gz" -C "$tmp_dir" --strip-components=1
 cp "$tmp_dir/katex.min.js" "$root_dir/assets/javascripts/katex/"
 cp "$tmp_dir/contrib/auto-render.min.js" "$root_dir/assets/javascripts/katex/"
 cp "$tmp_dir/contrib/mhchem.min.js" "$root_dir/assets/javascripts/katex/"
+cp "$tmp_dir/contrib/copy-tex.min.js" "$root_dir/assets/javascripts/katex/"
 cp "$tmp_dir/katex.min.css" "$root_dir/assets/stylesheets/katex/"
 cp "$tmp_dir"/fonts/*.woff2 "$root_dir/assets/stylesheets/katex/fonts/"
 cp "$tmp_dir/LICENSE" "$root_dir/vendor/katex/LICENSE"

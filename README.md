@@ -1,6 +1,6 @@
 # Redmine KaTeX
 
-Version **1.0.1**
+Version **1.0.2**
 
 Self-contained KaTeX display-math rendering for Redmine 7.0+ using an isolated CommonMark formatter. The plugin does not modify Redmine's built-in `common_mark` formatter and does not require a CDN or additional server-side Ruby gems.
 
@@ -11,6 +11,8 @@ Self-contained KaTeX display-math rendering for Redmine 7.0+ using an isolated C
 - Explicit exclusion of Monaco Editor editing surfaces while keeping Monaco preview panes renderable
 - Auto-render support for views that bypass the CommonMark formatter, such as Activity
 - `mhchem` support for chemistry notation such as `\ce{...}` and `\pu{...}`
+- KaTeX `copy-tex` support so copied formulas use their TeX source instead of rendered helper glyphs
+- Selection guard for transparent KaTeX/mhchem phantom glyphs used only for layout
 - Local KaTeX assets; no external CDN dependency
 - No database migration and no rewriting of issue, journal, or wiki source text
 - Redmine's standard `common_mark` formatter remains untouched
@@ -87,6 +89,14 @@ The bundled `mhchem` extension enables syntax such as:
 ```markdown
 $$ \ce{CO2 + H2 -> HCOOH} $$
 ```
+
+### Copying rendered math
+
+The bundled KaTeX `copy-tex` extension handles clipboard output for rendered formulas. When a selection includes a KaTeX formula, the plain-text clipboard representation is rewritten from the rendered DOM back to the original TeX source. Display formulas are copied with `$$...$$` delimiters.
+
+This is especially useful with `mhchem`, whose rendered HTML contains transparent phantom glyphs such as the internal `X` used by `\vphantom{X}` for layout. Those helper glyphs should not appear in copied plain text.
+
+A small plugin stylesheet also marks transparent KaTeX HTML helper glyphs as non-selectable. This suppresses selection highlighting of invisible layout glyphs without changing KaTeX's upstream stylesheet or math layout.
 
 ### Inline dollar text
 
@@ -166,6 +176,7 @@ katex.min.js
 katex.min.css
 auto-render.min.js
 mhchem.min.js
+copy-tex.min.js
 KaTeX WOFF2 fonts
 ```
 
@@ -173,12 +184,14 @@ The package intentionally omits artifacts that are not used by this plugin, incl
 
 - non-minified JavaScript and CSS builds
 - ESM builds
-- unused contrib modules
+- contrib modules other than `auto-render`, `mhchem`, and `copy-tex`
 - duplicate WOFF and TTF font files
 
 All KaTeX font families are retained; only the font format is reduced to WOFF2. The bundled KaTeX CSS differs from the supplied v0.18.9 distribution only by removing WOFF and TTF fallback URLs from its `@font-face` rules.
 
-This keeps the browser assets at roughly 0.6 MB uncompressed while retaining KaTeX's normal math font coverage.
+The plugin's own `redmine_katex.css` is loaded after `katex.min.css` and contains only local integration rules, including the selection guard for transparent layout glyphs. This keeps vendor CSS modifications minimal and easy to audit.
+
+The browser assets remain roughly 0.6 MB uncompressed while retaining KaTeX's normal math font coverage.
 
 ## KaTeX license and provenance
 
@@ -250,7 +263,7 @@ vendor/katex/VERSION
 - Some Markdown block syntax inside `$$...$$` may be interpreted by CommonMark before the math extension processes it. See below.
 - KaTeX supports a large subset of TeX/LaTeX math syntax, not every MathJax or full LaTeX command.
 - The bundled fonts are WOFF2-only. This targets current Chrome, Edge, Firefox, and Safari rather than legacy browsers.
-- JavaScript must be enabled for math rendering.
+- JavaScript must be enabled for math rendering and `copy-tex` clipboard handling.
 - The plugin intentionally avoids monkey-patching Redmine's standard `common_mark` formatter, global sanitizer, `ApplicationHelper`, or preview implementation.
 
 ### CommonMark block syntax inside display math
@@ -292,6 +305,11 @@ The same general caution applies to other lines that can form block-level Markdo
 This limitation is caused by the interaction between CommonMark block parsing and `math_dollars`, not by KaTeX itself.
 
 ## Release history
+
+### v1.0.2
+
+- Added KaTeX `copy-tex` so copied rendered formulas use TeX source rather than rendered helper glyphs.
+- Added a CSS selection guard for transparent KaTeX/mhchem phantom glyphs without modifying upstream KaTeX CSS behavior.
 
 ### v1.0.1
 
